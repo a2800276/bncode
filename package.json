@@ -1,0 +1,11 @@
+{
+  "name" : "bencode",
+  "version" : "0.1.2",
+  "description" : "bittorrent bencoding and decoding.",
+  "author" : "Tim Becker <tim.becker@kuriositaet.de>",
+  "main" : "./bencode.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/a2800276/bencode.js.git"
+  },
+}
