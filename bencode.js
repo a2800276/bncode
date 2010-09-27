@@ -20,7 +20,10 @@
  *    exmp.woah.arr.push(3)
  *    exmp.str = new Buffer("Buffers work too")
  *
- *    var bencBuffer = benc.encode(exmp)
+ *    var bencBuffer = benc.encode(exmp) i
+ *
+ *    // d3:bla4:blup3:foo3:bar3:onei1e4:woahd3:arr \
+ *    // li1ei2ei3eee3:str16:Buffers work tooe
  *
  *
  * Decoding will work in progressively, e.g. if you're receiving partial
@@ -44,6 +47,16 @@
  *        dec  = benc.decode(buf)
  *
  *    log(dec.bla)
+ *
+ *
+ * There are some subtleties concerning bencoded strings. These are
+ * decoded as Buffer objects because they are just strings of raw bytes
+ * and as such would wreak havoc with multi byte strings in javascript.
+ *
+ * The exception to this is strings that appear as keys in bencoded
+ * dicts. These are decoded as Javascript Strings, as they should always
+ * be strings of (ascii) characters and if they weren't decoded as JS
+ * Strings, dict's would map to Javascript objects with properties.
  *
  */
 
@@ -106,6 +119,9 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
   var neg    = false
 
   this.parse = function (buffer) {
+    if ("string" === typeof(buffer) ) {
+      buffer = new Buffer(buffer)
+    }
     var strLen = 0
     for (var pos = 0; pos != buffer.length; ++pos) {
         
@@ -124,7 +140,6 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
             case 0x39:
               state = STRING_LEN
               strLen = 0
-              str    = ""
               strLen += buffer[pos] - 0x30
               break
             case I:
@@ -154,6 +169,7 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
             strLen *= 10
             strLen += buffer[pos] - 0x30
           } else {
+            str = new Buffer(strLen)
             pos -=1
             state = COLON
           }
@@ -163,13 +179,20 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
             throw new Error("not a colon at:"+pos.toString(16))
           }
           state = STRING
+          // in case this is a zero length string, there's
+          // no bytes to be collected.
+          if (0 === strLen) {
+            cb(new Buffer(0))
+            state = INITIAL
+          }
           break
         case STRING:
           if (0 === strLen) {
             cb(str)
             state = INITIAL
           } else {
-            str += String.fromCharCode(buffer[pos])
+            //str += String.fromCharCode(buffer[pos]) // not unicode safe..
+            str[str.length-strLen] = buffer[pos]
             strLen -= 1
             if (0 === strLen) {
               cb(str)
@@ -261,7 +284,7 @@ var Bdecode = function () {
               val = null,
               dic = {}
           while ( (key = tmp_stack.pop()) && (val = tmp_stack.pop()) ) {
-            dic[key] = val
+            dic[key.toString()] = val
           }
 
           if (key && !dic[key]) {
@@ -420,7 +443,7 @@ function decode (buffer) {
   var decoder = new Bdecode()
 
   decoder.decode(buffer)
-  return decoder.result()
+  return decoder.result()[0]
 
 
 }
