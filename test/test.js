@@ -17,9 +17,13 @@ function assert(msg, should, is) {
 }
 
 function assert_obj(msg, should, is) {
-
-  if (! (JSON.stringify(should) === JSON.stringify(is)) ) {
+  var s = JSON.stringify,
+      should = should.toString(),
+      is     = is.toString()
+  if (! (should === is) ) {
     log(msg+" failed: should be: >"+should+"< is >"+ is + "<");
+//    log (s(should))
+//    log (s(is))
     return false
   }
   return true
@@ -151,6 +155,8 @@ function str_d () {
   ret &= assert('str_d4', '1234',    benc.decode('4:1234').toString() )
   ret &= assert('str_d5', 'unicöde', benc.decode('8:unicöde').toString() )
   ret &= assert('str_d6', '',        benc.decode('0:').toString() )
+
+  ret &= assert('str_dr7', 8,        benc.decode('8:12312312').length )
   return ret 
 }
 
@@ -185,6 +191,7 @@ function list_d() {
   assert_obj('list_d4', [], benc.decode("le") )
   assert_obj('list_d5', [1], benc.decode('li1ee') )
   assert_obj('list_d6', [1,2,3,new Buffer('four')], benc.decode("li1ei2ei3e4:foure") )
+
 }
 function dict_d() {
   assert_obj('dict_d1', {},             benc.decode(new Buffer("de")) )
@@ -201,6 +208,31 @@ function dict_d() {
                                         benc.decode("d3:bla4:blub4:blubi4ee") )
  
 }
+function assert_err(msg, err_msg, func) {
+  var caught = false
+  try {
+    func()
+  } catch (e) {
+    assert(msg, err_msg, e.message)
+    caught = true
+  }
+  assert(msg + " : no exception!", true, caught)
+}
+
+function errors () {
+  assert_err("err1", 'not in consistent state. More bytes coming?', function() {
+    benc.decode("d8:aaaaaaaa6:bbbbbb")
+  })
+  assert_err("err2", 'not in consistent state. More bytes coming?', function() {
+    benc.decode("lllee")
+  })
+  assert_err("err3", 'not in consistent state. More bytes coming?', function() {
+    benc.decode("d4:this4:that4:listle")
+  })
+  assert_err("err4", 'end with no beginning: 6', function() {
+    benc.decode("llleeee")
+  })
+}
 
 
 
@@ -213,5 +245,6 @@ docs_d()
 str_d()
 num_d()
 list_d()
+errors()
 
 

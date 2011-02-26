@@ -160,7 +160,11 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
             case E:
               state = INITIAL
               depth -= 1
-              cb_end()
+              if (depth < 0) {
+                throw new Error("end with no beginning: "+pos)
+              } else {
+                cb_end()
+              }
               break
           }
           break;
