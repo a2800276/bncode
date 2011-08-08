@@ -456,50 +456,6 @@ exports.encode  = Bencode
 exports.decoder = Bdecode
 exports.decode  = decode
 
-//var buffer = new buffer("10:ottffssent")
-//var cb     = function (o) {console.log(o)}
-//var cb_list = function () {console.log("\tlist")}
-//var cb_dict = function () {console.log("\tdict")}
-//var cb_end = function () {console.log("\tend")}
-//var cb     = function (o) {console.log(o)}
-//var de     = new bdecode(cb, cb_list, cb_dict, cb_end)
-//    de.decode(buffer)
-//
-//  buffer = new Buffer("i1230e")
-//    de.decode(buffer)
-//  buffer = new Buffer("i-1230e")
-//    de.decode(buffer)
-//  buffer = new Buffer("d10:ottffssenti1230ee")
-//  de.decode(buffer)
-//  buffer = new Buffer("l10:ottffssenti1230ee")
-//  de.decode(buffer)
-//  buffer = new Buffer("ld10:ottffssenti1230ee10:ottffssenti1230ee")
-//  de.decode(buffer)
-//log(process.argv[2])
-//  process.stdout.flush()
-//var fs = require('fs'),
-//    bu = fs.readFileSync(process.argv[2]),
-//    bd = new Bdecode()
-//
-//bd.decode(bu)
-////log(bd.result())
-////log(bd.thing)
-////
-//
-//log(Bencode("1234").toString())
-//log(Bencode(1234).toString())
-//log(Bencode(-1234).toString())
-//log(Bencode([1,2,3,4]).toString())
-//log(Bencode({1:2, 3:4}).toString())
-//var buf = new Buffer(100),
-//    obj = {}
-//
-//obj.test = buf
-//log(Bencode(obj).toString())
-
-
-
-//log(BEncode(bd.result()[0]).toString())
 
  
  

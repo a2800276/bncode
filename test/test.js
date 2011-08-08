@@ -234,6 +234,16 @@ function errors () {
   })
 }
 
+function file () {  
+  var de = new benc.decoder()
+  var fs = require("fs")
+  
+  fs.readFile("test/test.torrent", function (err, data) {
+    if (err) throw err;
+    de.decode(data)
+    // log(de.result())
+  })
+}
 
 
 docs()
@@ -246,5 +256,6 @@ str_d()
 num_d()
 list_d()
 errors()
+file()
 
 
