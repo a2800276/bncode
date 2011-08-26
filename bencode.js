@@ -245,7 +245,6 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
 /*
  * The exported decode functionality.
  */
-
 var Bdecode = function () {
   // markers
   var DICTIONARY_START = {}
@@ -274,7 +273,7 @@ var Bdecode = function () {
       var obj       = null,
           tmp_stack = []
 
-      while ( obj = stack.pop() ) {
+      while ( undefined !== (obj = stack.pop()) ) {
         if (LIST_START === obj) {
           var obj2 = null
           var list = []
@@ -287,11 +286,11 @@ var Bdecode = function () {
           var key = null,
               val = null,
               dic = {}
-          while ( (key = tmp_stack.pop()) && (val = tmp_stack.pop()) ) {
+          while ( (undefined !== (key = tmp_stack.pop())) && (undefined !== (val = tmp_stack.pop())) ) {
             dic[key.toString()] = val
           }
 
-          if (key && !dic[key]) {
+          if (undefined !== key && undefined === dic[key]) {
             throw new Error("uneven number of keys and values A")
           }
           self.cb(dic)
