@@ -33,6 +33,17 @@ function assert_buf(msg, should, is) {
   if (typeof(should) === "string" && is instanceof Buffer) {
     assert(msg, should, is.toString())
   } else {
+    if (Buffer.isBuffer(should) && Buffer.isBuffer(is) ){
+      if (should.length != is.length) {
+        return assert(msg, should, is)
+      }
+      for (var i=0; i!=should.length; ++i) {
+        if (is[i] != should[i]) {
+          return assert(msg, should, is)
+        }
+      }
+      return true
+    }
     assert(msg, should, is)
   }
 }
@@ -238,13 +249,20 @@ function file () {
   var de = new benc.decoder()
   var fs = require("fs")
   
-  fs.readFile("test/test.torrent", function (err, data) {
+  fs.readFile("test/bloeh.torrent", function (err, data) {
     if (err) throw err;
     de.decode(data)
-    // log(de.result())
+    var result = de.result()[0]
+    assert_buf("created by", "Transmission/2.33 (12565)" , result["created by"])
+    assert("creation date", 1312820612 , result["creation date"])
+    assert_buf("encoding", "UTF-8" , result["encoding"])
+    assert("info.files0.length", 17, result.info.files[0].length)
+    assert_buf("info.files0.path0", new Buffer("blöh.test", "UTF-8"), result.info.files[0].path[0])
+    assert("info.files.length", 1, result.info.files.length)
+    assert("info.piece length", 32768, result.info["piece length"])
+    assert_buf("info.pieces", new Buffer( [0xa6, 0x1a, 0x21, 0x38, 0xa2, 0x37, 0xc8, 0xd8, 0x99, 0x71, 0x0e, 0xbe, 0x91, 0x7f, 0xcf, 0xa3, 0x79, 0x12, 0x1b, 0x21] ), result.info.pieces)
   })
 }
-
 
 docs()
 str_e()
