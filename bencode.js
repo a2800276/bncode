@@ -118,9 +118,10 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
   var _int   = 0
   var neg    = false
 
-  this.parse = function (buffer) {
+  this.parse = function (buffer, encoding) {
+    encoding = encoding ? encoding : "UTF-8"
     if ("string" === typeof(buffer) ) {
-      buffer = new Buffer(buffer)
+      buffer = new Buffer(buffer, encoding)
     }
     var strLen = 0
     for (var pos = 0; pos != buffer.length; ++pos) {
@@ -320,8 +321,8 @@ var Bdecode = function () {
     return ctx.result()
   }
 
-  this.decode = function(buf) {
-    smachine.parse(buf)
+  this.decode = function(buf, encoding) {
+    smachine.parse(buf, encoding)
   }
 } 
 
@@ -442,10 +443,10 @@ var Bencode = function(obj) {
   }
 }
 
-function decode (buffer) {
+function decode (buffer, encoding) {
   var decoder = new Bdecode()
 
-  decoder.decode(buffer)
+  decoder.decode(buffer, encoding)
   return decoder.result()[0]
 
 

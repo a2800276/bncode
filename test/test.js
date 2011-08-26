@@ -264,6 +264,27 @@ function file () {
   })
 }
 
+function file_bug() {
+  var fs = require('fs')
+  var de = new benc.decoder()
+
+  var file = 'test/test.torrent'
+  
+  function file_bug2(data) {
+    var data2 = fs.readFileSync(file, 'binary')
+
+    benc.decode(data2, "binary")
+    de.decode(data2, "binary")
+    
+  }
+
+  fs.readFile(file, function(err, data) {
+    de.decode(data)
+    
+    file_bug2(data) 
+  })
+}
+
 docs()
 str_e()
 num_e()
@@ -275,5 +296,6 @@ num_d()
 list_d()
 errors()
 file()
+file_bug()
 
 
