@@ -117,13 +117,13 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
   var str    = ""
   var _int   = 0
   var neg    = false
+  var strLen = 0
 
   this.parse = function (buffer, encoding) {
     encoding = encoding ? encoding : "UTF-8"
     if ("string" === typeof(buffer) ) {
       buffer = new Buffer(buffer, encoding)
     }
-    var strLen = 0
     for (var pos = 0; pos != buffer.length; ++pos) {
         
       switch(state) {

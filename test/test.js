@@ -5,7 +5,7 @@ var benc = require('../bencode.js'),
 
 function log(msg) {
   console.log(msg)
-  process.stdout.flush()
+//  process.stdout.flush()
 }
 
 function assert(msg, should, is) {
@@ -264,6 +264,26 @@ function file () {
   })
 }
 
+function file_readStream (filename) {
+  var fs = require('fs')
+
+  var rs = fs.createReadStream(filename);
+
+  var decoder = new benc.decoder();
+
+  rs.on('data', function(data) {
+    try {
+      decoder.decode(data);
+    } catch (err) {
+      fs.close(rs.fd);
+      throw err;
+    }
+  });
+
+  rs.on('end', function() {
+  });
+}
+
 function file_bug() {
   var fs = require('fs')
   var de = new benc.decoder()
@@ -297,5 +317,9 @@ list_d()
 errors()
 file()
 file_bug()
+//file_readStream("test/bloeh.torrent");
+//console.log("here")
+file_readStream("test/chipcheezum.torrent");
+file_readStream("test/videos.torrent");
 
 
