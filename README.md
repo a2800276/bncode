@@ -1,7 +1,8 @@
 # bencoding for JS (node.js)
 
 
-This is a small library to encode and decode bencoded (bittorrent) stuff. Bencoding is specified [here](http://www.bittorrent.org/beps/bep_0003.html).
+This is a small library to encode and decode bencoded (bittorrent) stuff. 
+Bencoding is specified [here](http://www.bittorrent.org/beps/bep_0003.html).
 
 
 ## Get & Install
@@ -30,7 +31,7 @@ Encoding works as follows:
     exmp.woah.arr.push(3)
     exmp.str = new Buffer("Buffers work too")
  
-    var bencBuffer = benc.encode(exmp) i
+    var bencBuffer = benc.encode(exmp)
  
     // d3:bla4:blup3:foo3:bar3:onei1e4:woahd3:arr \
     // li1ei2ei3eee3:str16:Buffers work tooe
@@ -66,10 +67,10 @@ There are some subtleties concerning bencoded strings. These are
 decoded as Buffer objects because they are just strings of raw bytes
 and as such would wreak havoc with multi byte strings in javascript.
 
-The exception to this is strings that appear as keys in bencoded
+The exception to this is strings appearing as keys in bencoded
 dicts. These are decoded as Javascript Strings, as they should always
 be strings of (ascii) characters and if they weren't decoded as JS
-Strings, dict's couldn't be mapped to Javascript objects with properties.
+Strings, dict's couldn't be mapped to Javascript objects.
 
 
 ## Mapping bencoding to Javascript
@@ -94,12 +95,16 @@ Strings, dict's couldn't be mapped to Javascript objects with properties.
 
 ## Mapping Javascript to bencoding
 
-The library make a best effort to encode Javascript to bencoding. If you stick to basic types (Arrays, Objects with String keys and basic values, Strings, Buffers and Numbers) you should encounter suprises. Expect surprises (mainly not being able to round-trip encode/decode) if you encode fancies data.
+The code makes a best effort to encode Javascript to bencoding. If you stick to basic 
+types (Arrays, Objects with String keys and basic values, Strings, Buffers and Numbers) 
+you should encounter suprises. Expect surprises (mainly not being able to round-trip 
+encode/decode) if you encode fancy data-types.
 
 
 ## Author
 
-bencode.js was written by Tim Becker (tim.becker@kuriositaet.de) I can be reached via email or (preferably) submit a bug to the github repository.
+bencode.js was written by Tim Becker (tim.becker@kuriositaet.de) I can be reached via 
+email or (preferably) submit a bug to the github repository.
 
 
 ## Thanks
