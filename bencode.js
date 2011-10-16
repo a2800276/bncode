@@ -1,4 +1,6 @@
-
+/*
+ * (c) 2011 Tim Becker, see file LICENSE for details
+ */
 
 /*
  * Provides functionality for bencoding and decoding as use in

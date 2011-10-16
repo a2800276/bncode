@@ -1,8 +1,21 @@
-bencoding for JS (node.js)
-====
+# bencoding for JS (node.js)
 
-This is a small library to encode and decode bencoded (bittorrent) 
-Encoding is as follows:
+
+This is a small library to encode and decode bencoded (bittorrent) stuff. Bencoding is specified [here](http://www.bittorrent.org/beps/bep_0003.html).
+
+
+## Get & Install
+
+github repository is [here](https://github.com/a2800276/bencode.js)
+
+Installable via npm (npm package name is **bncode**, note spelling!):
+
+    npm install bncode
+
+
+## Encoding
+
+Encoding works as follows:
 
     var benc  = require("bencode"),
         exmp = {}
@@ -23,7 +36,10 @@ Encoding is as follows:
     // li1ei2ei3eee3:str16:Buffers work tooe
 
 
-Decoding will work in progressively, e.g. if you're receiving partial
+
+## Decoding
+
+Decoding will work progressively, e.g. if you're receiving partial
 bencoded strings on the network:
 
     var benc = require("bencode"),
@@ -53,5 +69,44 @@ and as such would wreak havoc with multi byte strings in javascript.
 The exception to this is strings that appear as keys in bencoded
 dicts. These are decoded as Javascript Strings, as they should always
 be strings of (ascii) characters and if they weren't decoded as JS
-Strings, dict's would map to Javascript objects with properties.
+Strings, dict's couldn't be mapped to Javascript objects with properties.
 
+
+## Mapping bencoding to Javascript
+
+    
+     +----------------------------------------------------+
+     |                |                                   |
+     |  Bencoded      |    Javascript                     |
+     |====================================================|
+     |  Strings       |    node Buffers, unless they are  |
+     |                |    Dictionary keys, in which case |
+     |                |    they become Javascript Strings |
+     |----------------+-----------------------------------|
+     |  Integers      |    Number                         |
+     |----------------+-----------------------------------|
+     |  Lists         |    Array                          |
+     |----------------+-----------------------------------|
+     |  Dictionaries  |    Object                         |
+     |                |                                   |
+     +----------------------------------------------------+
+
+
+## Mapping Javascript to bencoding
+
+The library make a best effort to encode Javascript to bencoding. If you stick to basic types (Arrays, Objects with String keys and basic values, Strings, Buffers and Numbers) you should encounter suprises. Expect surprises (mainly not being able to round-trip encode/decode) if you encode fancies data.
+
+
+## Author
+
+bencode.js was written by Tim Becker (tim.becker@kuriositaet.de) I can be reached via email or (preferably) submit a bug to the github repository.
+
+
+## Thanks
+
+Roly Fentanes (fent) for bug reports.
+
+
+## License
+
+MIT, see `LICENSE`
