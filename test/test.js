@@ -1,6 +1,5 @@
 
-var benc = require('../bencode.js'),
-    hexy = require('hexy')
+var benc = require('../bencode.js');
 
 
 function log(msg) {
@@ -305,6 +304,12 @@ function file_bug() {
   })
 }
 
+function list_0() {
+  var data = 'li0ee';
+  var decoded = benc.decode(data);
+  assert_obj("List with 0", [0], decoded);
+}
+
 docs()
 str_e()
 num_e()
@@ -317,6 +322,7 @@ list_d()
 errors()
 file()
 file_bug()
+list_0()
 //file_readStream("test/bloeh.torrent");
 //console.log("here")
 file_readStream("test/chipcheezum.torrent");

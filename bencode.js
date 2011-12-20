@@ -280,7 +280,7 @@ var Bdecode = function () {
         if (LIST_START === obj) {
           var obj2 = null
           var list = []
-          while( obj2 = tmp_stack.pop() ) {
+          while( undefined !== (obj2 = tmp_stack.pop()) ) {
             list.push(obj2)
           }
           self.cb(list)
