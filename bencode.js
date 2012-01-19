@@ -406,8 +406,8 @@ var Bencode = function(obj) {
   }
 
   function encodeBuffer(obj) {
-    var len = obj.length.toString(10)
-        buf = new Buffer(len.length+1+obj.length)
+    var len = obj.length.toString(10),
+        buf = new Buffer(len.length+1+obj.length);
 
     buf.write(len, 0, "ascii")
     buf.write(":", len.length, "ascii")
@@ -437,7 +437,7 @@ var Bencode = function(obj) {
       if (buffer.length > num+pos+1) {
         return
       } else {
-        buf2 = new Buffer(buffer.length + num) 
+        var buf2 = new Buffer(buffer.length + num) 
         buffer.copy(buf2, 0, 0)
         buffer = buf2
       }
