@@ -1,21 +1,29 @@
 
 var benc = require('../bencode.js');
 
+var  tests = 0
+    ,failures = 0
 
+function report () {
+  log ("#test:"+tests+" failures: "+failures+"("+(failures/tests)*100+"%)")
+}
 function log(msg) {
   console.log(msg)
 //  process.stdout.flush()
 }
 
 function assert(msg, should, is) {
+  ++tests
   if (! (should === is) ) {
     log(msg+" failed: should be: >"+should+"< is >"+ is + "<");
+    ++failures
     return false
   }
   return true
 }
 
 function assert_obj(msg, should, is) {
+  ++tests
   var s = JSON.stringify,
       should = should.toString(),
       is     = is.toString()
@@ -23,6 +31,7 @@ function assert_obj(msg, should, is) {
     log(msg+" failed: should be: >"+should+"< is >"+ is + "<");
 //    log (s(should))
 //    log (s(is))
+    ++failures
     return false
   }
   return true
@@ -328,4 +337,7 @@ list_0()
 file_readStream("test/chipcheezum.torrent");
 file_readStream("test/videos.torrent");
 
-
+report()
+if (failures > 0) {
+  process.exit(1)
+}
