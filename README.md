@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/a2800276/bencode.js.png)](http://travis-ci.org/a2800276/bencode.js)
 # bencoding for JS (node.js)
 
 
