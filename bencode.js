@@ -64,6 +64,9 @@
 
 
 
+var Transform   = require('readable-stream').Transform;
+var inherits = require('util').inherits;
+
 var I     = "i".charCodeAt(0)
 var L     = "l".charCodeAt(0)
 var E     = "e".charCodeAt(0)
@@ -454,9 +457,33 @@ function decode (buffer, encoding) {
 
 }
 
+function Stream (options) {
+  options = options || {};
+  options.objectMode = true;
+  Transform.call(this, options);
+  this._decoder = new Bdecode()
+}
+
+inherits(Stream, Transform);
+
+Stream.prototype._transform = function (chunk, encoding, callback) {
+  try {
+    this._decoder.decode(chunk, encoding)
+    callback(null);
+  } catch(err) {
+    callback(err);
+  }
+}
+
+Stream.prototype._flush = function (callback) {
+  this.push(this._decoder.result()[0]);
+  callback(null);
+}
+
 exports.encode  = Bencode
 exports.decoder = Bdecode
 exports.decode  = decode
+exports.Stream  = Stream
 
 
  

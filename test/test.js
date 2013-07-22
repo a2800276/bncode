@@ -277,19 +277,15 @@ function file_readStream (filename) {
 
   var rs = fs.createReadStream(filename);
 
-  var decoder = new benc.decoder();
+  var stream = new benc.Stream();
+  rs.pipe(stream);
 
-  rs.on('data', function(data) {
-    try {
-      decoder.decode(data);
-    } catch (err) {
-      fs.close(rs.fd);
-      throw err;
-    }
-  });
+  stream.on('error', function(err) {
+    throw err
+  })
 
-  rs.on('end', function() {
-  });
+  stream.on('data', function(data) {
+  })
 }
 
 function file_bug() {
