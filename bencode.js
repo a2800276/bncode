@@ -64,7 +64,7 @@
 
 
 
-var Duplex   = require('readable-stream').Duplex;
+var Transform   = require('readable-stream').Transform;
 var inherits = require('util').inherits;
 
 var I     = "i".charCodeAt(0)
@@ -457,16 +457,16 @@ function decode (buffer, encoding) {
 
 }
 
-function stream (options) {
+function Stream (options) {
   options = options || {};
   options.objectMode = true;
-  Writable.call(this, options);
+  Transform.call(this, options);
   this._decoder = new Bdecode()
 }
 
-inherits(stream, Duplex);
+inherits(Stream, Transform);
 
-stream.prototype._transform = function (chunk, encoding, callback) {
+Stream.prototype._transform = function (chunk, encoding, callback) {
   try {
     this._decoder.decode(chunk, encoding)
     callback(null);
@@ -475,7 +475,7 @@ stream.prototype._transform = function (chunk, encoding, callback) {
   }
 }
 
-stream.prototype._flush = function (callback) {
+Stream.prototype._flush = function (callback) {
   this.push(this._decoder.result()[0]);
   callback(null);
 }
@@ -483,7 +483,7 @@ stream.prototype._flush = function (callback) {
 exports.encode  = Bencode
 exports.decoder = Bdecode
 exports.decode  = decode
-exports.stream  = stream
+exports.Stream  = Stream
 
 
  
