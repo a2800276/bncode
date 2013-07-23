@@ -98,7 +98,7 @@ Strings, dict's couldn't be mapped to Javascript objects.
 
 The code makes a best effort to encode Javascript to bencoding. If you stick to basic 
 types (Arrays, Objects with String keys and basic values, Strings, Buffers and Numbers) 
-you should encounter suprises. Expect surprises (mainly not being able to round-trip 
+you shouldn't encounter suprises. Expect surprises (mainly not being able to round-trip 
 encode/decode) if you encode fancy data-types.
 
 
