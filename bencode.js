@@ -1,3 +1,4 @@
+/*jshint es5:false, asi:true, quotmark:false, eqeqeq:false, forin: false */
 /*
  * (c) 2011 Tim Becker, see file LICENSE for details
  */
@@ -72,13 +73,14 @@ var L     = "l".charCodeAt(0)
 var E     = "e".charCodeAt(0)
 var D     = "d".charCodeAt(0)
 var COLON = ":".charCodeAt(0)
+var DASH  = "-".charCodeAt(0)
 
-var INITIAL    = 0
-var STRING_LEN = INITIAL    + 1
-var STRING     = STRING_LEN + 1
-var COLON      = STRING     + 1
-var SINTEGER   = COLON      + 1
-var INTEGER    = SINTEGER   + 1
+var STATE_INITIAL          = 0
+var STATE_STATE_STRING_LEN = STATE_INITIAL          + 1
+var STATE_STRING           = STATE_STATE_STRING_LEN + 1
+var STATE_COLON            = STATE_STRING           + 1
+var STATE_STATE_INTEGER    = STATE_COLON            + 1
+var STATE_INTEGER          = STATE_STATE_INTEGER    + 1
 
 
 function log (m) {console.log(m); process.stdout.flush()}
@@ -105,24 +107,17 @@ function log (m) {console.log(m); process.stdout.flush()}
  */
  
 var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
-  var self    = this
-  var pos     = 0
   var depth   = 0
-  var state   = INITIAL
-  var cb      = cb
-  var cb_list = cb_list
-  var cb_dict = cb_dict
-  var cb_end  = cb_end
+  var state   = STATE_INITIAL
   
   this.consistent = function() {
-    return (state === INITIAL && depth === 0)
+    return (state === STATE_INITIAL && depth === 0)
   }
   
   var strLen = 0
   var str    = ""
   var _int   = 0
   var neg    = false
-  var strLen = 0
 
   this.parse = function (buffer, encoding) {
     encoding = encoding ? encoding : "UTF-8"
@@ -132,7 +127,7 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
     for (var pos = 0; pos != buffer.length; ++pos) {
         
       switch(state) {
-        case INITIAL:
+        case STATE_INITIAL:
           switch(buffer[pos]){
             case 0x30:
             case 0x31:
@@ -144,27 +139,27 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
             case 0x37:
             case 0x38:
             case 0x39:
-              state = STRING_LEN
+              state = STATE_STATE_STRING_LEN
               strLen = 0
               strLen += buffer[pos] - 0x30
               break
             case I:
-              state = SINTEGER
+              state = STATE_STATE_INTEGER
               _int  = 0
               neg   = false
               break
             case L:
-              state = INITIAL
+              state = STATE_INITIAL
               depth += 1
               cb_list()
               break
             case D:
-              state = INITIAL
+              state = STATE_INITIAL
               depth += 1
               cb_dict()
               break
             case E:
-              state = INITIAL
+              state = STATE_INITIAL
               depth -= 1
               if (depth < 0) {
                 throw new Error("end with no beginning: "+pos)
@@ -174,56 +169,56 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
               break
           }
           break;
-        case STRING_LEN:
+        case STATE_STATE_STRING_LEN:
           if (integer(buffer[pos])) {
             strLen *= 10
             strLen += buffer[pos] - 0x30
           } else {
             str = new Buffer(strLen)
             pos -=1
-            state = COLON
+            state = STATE_COLON
           }
           break
-        case COLON:
-          if (buffer[pos] != ":".charCodeAt(0)) {
+        case STATE_COLON:
+          if (buffer[pos] != COLON) {
             throw new Error("not a colon at:"+pos.toString(16))
           }
-          state = STRING
+          state = STATE_STRING
           // in case this is a zero length string, there's
           // no bytes to be collected.
           if (0 === strLen) {
             cb(new Buffer(0))
-            state = INITIAL
+            state = STATE_INITIAL
           }
           break
-        case STRING:
+        case STATE_STRING:
           if (0 === strLen) {
             cb(str)
-            state = INITIAL
+            state = STATE_INITIAL
           } else {
             //str += String.fromCharCode(buffer[pos]) // not unicode safe..
             str[str.length-strLen] = buffer[pos]
             strLen -= 1
             if (0 === strLen) {
               cb(str)
-              state = INITIAL
+              state = STATE_INITIAL
             }
           }
           break
-        case SINTEGER:
-          state = INTEGER
-          if (buffer[pos] == "-".charCodeAt(0)) {
+        case STATE_STATE_INTEGER:
+          state = STATE_INTEGER
+          if (buffer[pos] == DASH) {
             neg = true  // handle neg and zero within value.
             break
           } // else fall through 
-        case INTEGER:
+        case STATE_INTEGER:
           if (integer(buffer[pos])) {
             _int *= 10
             _int += buffer[pos] - 0x30
-          } else if (buffer[pos] == "e".charCodeAt(0)) {
+          } else if (buffer[pos] == E) {
             var ret = neg ? 0 - _int : _int
             cb(ret)
-            state = INITIAL
+            state = STATE_INITIAL
           } else {
             throw new Error("not part of int at:"+pos.toString(16))
           }
@@ -236,8 +231,8 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
   var integer = function (value) {
     // check that value is a number and that
     // its value is ascii integer.
-    if (! (typeof(value)==='number') ) {
-      return false 
+    if (typeof(value) !== 'number') {
+      return false
     }
     return between(value, 0x30, 0x39)
   }
@@ -315,8 +310,7 @@ var Bdecode = function () {
     }
   }
  
-  var self      = this,
-      ctx       = new Context(),
+  var ctx       = new Context(),
       smachine  = new BdecodeSMachine(ctx.cb, ctx.cb_list, ctx.cb_dict, ctx.cb_end)
 
   this.result    = function () {
@@ -329,12 +323,9 @@ var Bdecode = function () {
   this.decode = function(buf, encoding) {
     smachine.parse(buf, encoding)
   }
-} 
+}
 
 var Bencode = function(obj) {
-  var self = this
-  var to_encode = obj
-
   switch (typeof (obj) ) {
     case "string":
       return encodeString(obj)
@@ -343,7 +334,7 @@ var Bencode = function(obj) {
       break
     case "object":
       if (obj instanceof Array) {
-        return encodeList(obj) 
+        return encodeList(obj)
       } else if (obj instanceof Buffer) {
         return encodeBuffer(obj)
       }
@@ -440,7 +431,7 @@ var Bencode = function(obj) {
       if (buffer.length > num+pos+1) {
         return
       } else {
-        var buf2 = new Buffer(buffer.length + num) 
+        var buf2 = new Buffer(buffer.length + num)
         buffer.copy(buf2, 0, 0)
         buffer = buf2
       }
