@@ -325,6 +325,10 @@ var Bdecode = function () {
     }
     return ctx.result()
   }
+  
+  this.current_result    = function () {
+    return ctx.result()
+  }
 
   this.decode = function(buf, encoding) {
     smachine.parse(buf, encoding)
