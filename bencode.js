@@ -66,6 +66,7 @@
 
 var Transform   = require('readable-stream').Transform;
 var inherits = require('util').inherits;
+var bops = require('bops')
 
 var I     = "i".charCodeAt(0)
 var L     = "l".charCodeAt(0)
@@ -125,9 +126,9 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
   var strLen = 0
 
   this.parse = function (buffer, encoding) {
-    encoding = encoding ? encoding : "UTF-8"
-    if ("string" === typeof(buffer) ) {
-      buffer = new Buffer(buffer, encoding)
+    encoding = encoding ? encoding : "utf8"
+    if ("string" === typeof(buffer)) {
+      buffer = bops.from(buffer, encoding)
     }
     for (var pos = 0; pos != buffer.length; ++pos) {
         
@@ -179,7 +180,7 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
             strLen *= 10
             strLen += buffer[pos] - 0x30
           } else {
-            str = new Buffer(strLen)
+            str = bops.create(strLen)
             pos -=1
             state = COLON
           }
@@ -192,7 +193,7 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
           // in case this is a zero length string, there's
           // no bytes to be collected.
           if (0 === strLen) {
-            cb(new Buffer(0))
+            cb(bops.create(0))
             state = INITIAL
           }
           break
@@ -293,7 +294,7 @@ var Bdecode = function () {
               val = null,
               dic = {}
           while ( (undefined !== (key = tmp_stack.pop())) && (undefined !== (val = tmp_stack.pop())) ) {
-            dic[key.toString()] = val
+            dic[bops.to(key)] = val
           }
 
           if (undefined !== key && undefined === dic[key]) {
@@ -344,7 +345,7 @@ var Bencode = function(obj) {
     case "object":
       if (obj instanceof Array) {
         return encodeList(obj) 
-      } else if (obj instanceof Buffer) {
+      } else if (bops.is(obj)) {
         return encodeBuffer(obj)
       }
       
@@ -355,24 +356,17 @@ var Bencode = function(obj) {
   }
 
   function encodeString(obj) {
-    var blen = Buffer.byteLength(obj),
+    var blen = bops.from(obj).length,
         len  = blen.toString(10),
-        buf  = new Buffer(len.length + 1 + blen)
-    
-    buf.write(len, 0, "ascii")
-    buf.write(":", len.length, "ascii")
-    buf.write(obj, len.length+1, "utf8")
+        buf  = bops.from(len + ":" + obj)
 
     return buf
   }
 
   function encodeNumber(num) {
     var n   = num.toString(10),
-        buf = new Buffer(n.length+2)
+        buf = bops.from("i" + n + "e")
 
-    buf.write("i", 0)
-    buf.write(n,   1)
-    buf.write("e", n.length+1)
 
     return buf
   }
@@ -384,9 +378,9 @@ var Bencode = function(obj) {
         var key = Bencode(p),
             val = Bencode(obj[p])
         ensure(key.length + val.length, pos)
-        key.copy(buffer, pos, 0)
+        bops.copy(key, buffer, pos, 0)
         pos += key.length
-        val.copy(buffer, pos, 0)
+        bops.copy(val, buffer, pos, 0)
         pos += val.length
       }
       return pos
@@ -400,7 +394,7 @@ var Bencode = function(obj) {
         var elem = Bencode(o)
 
         ensure(elem.length, pos)
-        elem.copy(buffer, pos, 0)
+        bops.copy(elem, buffer, pos, 0)
         pos += elem.length
       })
       return pos
@@ -410,13 +404,12 @@ var Bencode = function(obj) {
 
   function encodeBuffer(obj) {
     var len = obj.length.toString(10),
-        buf = new Buffer(len.length+1+obj.length);
+        buf = bops.create(len.length+1+obj.length);
 
-    buf.write(len, 0, "ascii")
-    buf.write(":", len.length, "ascii")
-    obj.copy(buf, len.length+1, 0)
+    bops.copy(bops.from(len + ":"), buf, 0)
+    bops.copy(obj, buf, len.length+1, 0)
+
     return buf
-      
   }
 
   var buffer = null
@@ -424,24 +417,24 @@ var Bencode = function(obj) {
     var pos = 0
 
     ensure(1024, 0)
-    buffer.write(prefix, pos++)
-    
+    bops.copy(bops.from(prefix), buffer, pos++)
+
     pos = func(obj, pos)
     ensure(1, pos)
 
-    buffer.write("e", pos++)
-    return buffer.slice(0, pos)
+    bops.copy(bops.from("e"), buffer, pos++)
+    return bops.subarray(buffer, 0, pos)
   }
 
   function ensure (num, pos) {
     if (!buffer) {
-      buffer = new Buffer(num)
+      buffer = bops.create(num)
     } else {
       if (buffer.length > num+pos+1) {
         return
       } else {
-        var buf2 = new Buffer(buffer.length + num) 
-        buffer.copy(buf2, 0, 0)
+        var buf2 = bops.create(buffer.length + num)
+        bops.copy(buffer, buf2)
         buffer = buf2
       }
     }

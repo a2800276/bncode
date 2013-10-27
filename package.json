@@ -1,17 +1,18 @@
 {
-   "name" : "bncode"
-  ,"version" : "0.2.3"
-  ,"description" : "bittorrent bencoding and decoding."
-  ,"author" : "Tim Becker <tim.becker@kuriositaet.de>"
-  ,"main" : "./bencode.js"
-  ,"repository": {
-     "type": "git"
-    ,"url": "git://github.com/a2800276/bencode.js.git"
-  }
-  ,"scripts" : {
+  "name": "bncode",
+  "version": "0.3.0",
+  "description": "bittorrent bencoding and decoding.",
+  "author": "Tim Becker <tim.becker@kuriositaet.de>",
+  "main": "./bencode.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/a2800276/bencode.js.git"
+  },
+  "scripts": {
     "test": "node test/test.js"
-  } 
-  ,"dependencies": {
-    "readable-stream": "~1.0.2"
+  },
+  "dependencies": {
+    "readable-stream": "~1.0.2",
+    "bops": "~0.1.0"
   }
 }
