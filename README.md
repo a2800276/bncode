@@ -19,7 +19,7 @@ Installable via npm (npm package name is **bncode**, note spelling!):
 
 Encoding works as follows:
 
-    var benc  = require("bencode"),
+    var benc  = require("bncode"),
         exmp = {}
  
     exmp.bla = "blup"
