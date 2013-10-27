@@ -6,7 +6,7 @@
  * Provides functionality for bencoding and decoding as use in
  * bittorrent and described in:
  *  http://www.bittorrent.org/beps/bep_0003.html
- * 
+ *
  * Encoding is as follows:
  *
  *    var benc  = require("bencode"),
@@ -38,7 +38,7 @@
  *    while (buf = receiveData()) {
  *      decoder.decode(buf)
  *    }
- *    
+ *
  *    log(decoder.result())
  *
  *
@@ -89,14 +89,14 @@ function log (m) {console.log(m); process.stdout.flush()}
  * it's not exposed in the eports.  It's constructed with four callbacks
  * that get fired when:
  *
- * cb: a value (string or number) is encountered 
- * cb_list: a begin list element is encountered 
- * cb_dict: a beginning of dictionary is encountered.  
+ * cb: a value (string or number) is encountered
+ * cb_list: a begin list element is encountered
+ * cb_dict: a beginning of dictionary is encountered.
  * cd_end: an end element, wheter dict or list is encountered
  *
  * Once constructed, the machine may be fed with buffers containing
  * partial bencoded string. Call `consistent` to check whether the
- * current state is consistent, e.g. not smack-dap in the middle of 
+ * current state is consistent, e.g. not smack-dap in the middle of
  * a string or a number and if the dict, list and end calls balance
  *
  *
@@ -104,7 +104,7 @@ function log (m) {console.log(m); process.stdout.flush()}
  * logic in the code executing the machine, for this see Context, below.
  *
  */
- 
+
 var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
   var self    = this
   var pos     = 0
@@ -114,11 +114,11 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
   var cb_list = cb_list
   var cb_dict = cb_dict
   var cb_end  = cb_end
-  
+
   this.consistent = function() {
     return (state === INITIAL && depth === 0)
   }
-  
+
   var strLen = 0
   var str    = ""
   var _int   = 0
@@ -131,7 +131,7 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
       buffer = bops.from(buffer, encoding)
     }
     for (var pos = 0; pos != buffer.length; ++pos) {
-        
+
       switch(state) {
         case INITIAL:
           switch(buffer[pos]){
@@ -216,7 +216,7 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
           if (buffer[pos] == "-".charCodeAt(0)) {
             neg = true  // handle neg and zero within value.
             break
-          } // else fall through 
+          } // else fall through
         case INTEGER:
           if (integer(buffer[pos])) {
             _int *= 10
@@ -230,15 +230,15 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
           }
           break;
       } // switch state
-    } // for buffer  
+    } // for buffer
   } // function parse
 
-  
+
   var integer = function (value) {
     // check that value is a number and that
     // its value is ascii integer.
     if (! (typeof(value)==='number') ) {
-      return false 
+      return false
     }
     return between(value, 0x30, 0x39)
   }
@@ -272,11 +272,11 @@ var Bdecode = function () {
     }
 
     this.cb_end  = function(){
-      
+
       // unwind the stack until either a DICTIONARY_START or LIST_START is
       // found, create arr or hash, stick unwound stack on, push arr or hash
       // back onto stack
-      
+
       var obj       = null,
           tmp_stack = []
 
@@ -315,7 +315,7 @@ var Bdecode = function () {
       return stack
     }
   }
- 
+
   var self      = this,
       ctx       = new Context(),
       smachine  = new BdecodeSMachine(ctx.cb, ctx.cb_list, ctx.cb_dict, ctx.cb_end)
@@ -330,11 +330,12 @@ var Bdecode = function () {
   this.decode = function(buf, encoding) {
     smachine.parse(buf, encoding)
   }
-} 
+}
 
 var Bencode = function(obj) {
   var self = this
   var to_encode = obj
+  var buffer = null
 
   switch (typeof (obj) ) {
     case "string":
@@ -344,11 +345,11 @@ var Bencode = function(obj) {
       break
     case "object":
       if (obj instanceof Array) {
-        return encodeList(obj) 
+        return encodeList(obj)
       } else if (bops.is(obj)) {
         return encodeBuffer(obj)
       }
-      
+
       {
         // assume it's a hash
         return encodeDict(obj)
@@ -367,12 +368,10 @@ var Bencode = function(obj) {
     var n   = num.toString(10),
         buf = bops.from("i" + n + "e")
 
-
     return buf
   }
 
   function encodeDict(obj) {
-    
     var func = function (obj, pos) {
       for (var p in obj) {
         var key = Bencode(p),
@@ -412,7 +411,6 @@ var Bencode = function(obj) {
     return buf
   }
 
-  var buffer = null
   function assemble (obj, prefix, func) {
     var pos = 0
 
@@ -446,8 +444,6 @@ function decode (buffer, encoding) {
 
   decoder.decode(buffer, encoding)
   return decoder.result()[0]
-
-
 }
 
 function Stream (options) {
@@ -477,10 +473,4 @@ exports.encode  = Bencode
 exports.decoder = Bdecode
 exports.decode  = decode
 exports.Stream  = Stream
-
-
- 
- 
-
-
 
