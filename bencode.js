@@ -7,7 +7,7 @@
  * Provides functionality for bencoding and decoding as use in
  * bittorrent and described in:
  *  http://www.bittorrent.org/beps/bep_0003.html
- * 
+ *
  * Encoding is as follows:
  *
  *    var benc  = require("bencode"),
@@ -39,7 +39,7 @@
  *    while (buf = receiveData()) {
  *      decoder.decode(buf)
  *    }
- *    
+ *
  *    log(decoder.result())
  *
  *
@@ -67,6 +67,7 @@
 
 var Transform   = require('readable-stream').Transform;
 var inherits = require('util').inherits;
+var bops = require('bops')
 
 var I     = "i".charCodeAt(0)
 var L     = "l".charCodeAt(0)
@@ -90,14 +91,14 @@ function log (m) {console.log(m); process.stdout.flush()}
  * it's not exposed in the eports.  It's constructed with four callbacks
  * that get fired when:
  *
- * cb: a value (string or number) is encountered 
- * cb_list: a begin list element is encountered 
- * cb_dict: a beginning of dictionary is encountered.  
+ * cb: a value (string or number) is encountered
+ * cb_list: a begin list element is encountered
+ * cb_dict: a beginning of dictionary is encountered.
  * cd_end: an end element, wheter dict or list is encountered
  *
  * Once constructed, the machine may be fed with buffers containing
  * partial bencoded string. Call `consistent` to check whether the
- * current state is consistent, e.g. not smack-dap in the middle of 
+ * current state is consistent, e.g. not smack-dap in the middle of
  * a string or a number and if the dict, list and end calls balance
  *
  *
@@ -105,27 +106,32 @@ function log (m) {console.log(m); process.stdout.flush()}
  * logic in the code executing the machine, for this see Context, below.
  *
  */
- 
+
 var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
   var depth   = 0
   var state   = STATE_INITIAL
   
+  var cb      = cb
+  var cb_list = cb_list
+  var cb_dict = cb_dict
+  var cb_end  = cb_end
+
   this.consistent = function() {
     return (state === STATE_INITIAL && depth === 0)
   }
-  
+
   var strLen = 0
   var str    = ""
   var _int   = 0
   var neg    = false
 
   this.parse = function (buffer, encoding) {
-    encoding = encoding ? encoding : "UTF-8"
-    if ("string" === typeof(buffer) ) {
-      buffer = new Buffer(buffer, encoding)
+    encoding = encoding ? encoding : "utf8"
+    if ("string" === typeof(buffer)) {
+      buffer = bops.from(buffer, encoding)
     }
     for (var pos = 0; pos != buffer.length; ++pos) {
-        
+
       switch(state) {
         case STATE_INITIAL:
           switch(buffer[pos]){
@@ -174,7 +180,7 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
             strLen *= 10
             strLen += buffer[pos] - 0x30
           } else {
-            str = new Buffer(strLen)
+            str = bops.create(strLen)
             pos -=1
             state = STATE_COLON
           }
@@ -187,7 +193,7 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
           // in case this is a zero length string, there's
           // no bytes to be collected.
           if (0 === strLen) {
-            cb(new Buffer(0))
+            cb(bops.create(0))
             state = STATE_INITIAL
           }
           break
@@ -224,14 +230,14 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
           }
           break;
       } // switch state
-    } // for buffer  
+    } // for buffer
   } // function parse
 
-  
+
   var integer = function (value) {
     // check that value is a number and that
     // its value is ascii integer.
-    if (typeof(value) !== 'number') {
+    if (! (typeof(value)==='number') ) {
       return false
     }
     return between(value, 0x30, 0x39)
@@ -266,11 +272,11 @@ var Bdecode = function () {
     }
 
     this.cb_end  = function(){
-      
+
       // unwind the stack until either a DICTIONARY_START or LIST_START is
       // found, create arr or hash, stick unwound stack on, push arr or hash
       // back onto stack
-      
+
       var obj       = null,
           tmp_stack = []
 
@@ -288,7 +294,7 @@ var Bdecode = function () {
               val = null,
               dic = {}
           while ( (undefined !== (key = tmp_stack.pop())) && (undefined !== (val = tmp_stack.pop())) ) {
-            dic[key.toString()] = val
+            dic[bops.to(key)] = val
           }
 
           if (undefined !== key && undefined === dic[key]) {
@@ -309,8 +315,9 @@ var Bdecode = function () {
       return stack
     }
   }
- 
-  var ctx       = new Context(),
+
+  var self      = this,
+      ctx       = new Context(),
       smachine  = new BdecodeSMachine(ctx.cb, ctx.cb_list, ctx.cb_dict, ctx.cb_end)
 
   this.result    = function () {
@@ -326,6 +333,10 @@ var Bdecode = function () {
 }
 
 var Bencode = function(obj) {
+  var self = this
+  var to_encode = obj
+  var buffer = null
+
   switch (typeof (obj) ) {
     case "string":
       return encodeString(obj)
@@ -335,10 +346,10 @@ var Bencode = function(obj) {
     case "object":
       if (obj instanceof Array) {
         return encodeList(obj)
-      } else if (obj instanceof Buffer) {
+      } else if (bops.is(obj)) {
         return encodeBuffer(obj)
       }
-      
+
       {
         // assume it's a hash
         return encodeDict(obj)
@@ -346,38 +357,29 @@ var Bencode = function(obj) {
   }
 
   function encodeString(obj) {
-    var blen = Buffer.byteLength(obj),
+    var blen = bops.from(obj).length,
         len  = blen.toString(10),
-        buf  = new Buffer(len.length + 1 + blen)
-    
-    buf.write(len, 0, "ascii")
-    buf.write(":", len.length, "ascii")
-    buf.write(obj, len.length+1, "utf8")
+        buf  = bops.from(len + ":" + obj)
 
     return buf
   }
 
   function encodeNumber(num) {
     var n   = num.toString(10),
-        buf = new Buffer(n.length+2)
-
-    buf.write("i", 0)
-    buf.write(n,   1)
-    buf.write("e", n.length+1)
+        buf = bops.from("i" + n + "e")
 
     return buf
   }
 
   function encodeDict(obj) {
-    
     var func = function (obj, pos) {
       for (var p in obj) {
         var key = Bencode(p),
             val = Bencode(obj[p])
         ensure(key.length + val.length, pos)
-        key.copy(buffer, pos, 0)
+        bops.copy(key, buffer, pos, 0)
         pos += key.length
-        val.copy(buffer, pos, 0)
+        bops.copy(val, buffer, pos, 0)
         pos += val.length
       }
       return pos
@@ -391,7 +393,7 @@ var Bencode = function(obj) {
         var elem = Bencode(o)
 
         ensure(elem.length, pos)
-        elem.copy(buffer, pos, 0)
+        bops.copy(elem, buffer, pos, 0)
         pos += elem.length
       })
       return pos
@@ -401,38 +403,36 @@ var Bencode = function(obj) {
 
   function encodeBuffer(obj) {
     var len = obj.length.toString(10),
-        buf = new Buffer(len.length+1+obj.length);
+        buf = bops.create(len.length+1+obj.length);
 
-    buf.write(len, 0, "ascii")
-    buf.write(":", len.length, "ascii")
-    obj.copy(buf, len.length+1, 0)
+    bops.copy(bops.from(len + ":"), buf, 0)
+    bops.copy(obj, buf, len.length+1, 0)
+
     return buf
-      
   }
 
-  var buffer = null
   function assemble (obj, prefix, func) {
     var pos = 0
 
     ensure(1024, 0)
-    buffer.write(prefix, pos++)
-    
+    bops.copy(bops.from(prefix), buffer, pos++)
+
     pos = func(obj, pos)
     ensure(1, pos)
 
-    buffer.write("e", pos++)
-    return buffer.slice(0, pos)
+    bops.copy(bops.from("e"), buffer, pos++)
+    return bops.subarray(buffer, 0, pos)
   }
 
   function ensure (num, pos) {
     if (!buffer) {
-      buffer = new Buffer(num)
+      buffer = bops.create(num)
     } else {
       if (buffer.length > num+pos+1) {
         return
       } else {
-        var buf2 = new Buffer(buffer.length + num)
-        buffer.copy(buf2, 0, 0)
+        var buf2 = bops.create(buffer.length + num)
+        bops.copy(buffer, buf2)
         buffer = buf2
       }
     }
@@ -444,8 +444,6 @@ function decode (buffer, encoding) {
 
   decoder.decode(buffer, encoding)
   return decoder.result()[0]
-
-
 }
 
 function Stream (options) {
@@ -475,10 +473,4 @@ exports.encode  = Bencode
 exports.decoder = Bdecode
 exports.decode  = decode
 exports.Stream  = Stream
-
-
- 
- 
-
-
 

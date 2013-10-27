@@ -44,7 +44,7 @@ Encoding works as follows:
 Decoding will work progressively, e.g. if you're receiving partial
 bencoded strings on the network:
 
-    var benc = require("bencode"),
+    var benc = require("bncode"),
         buf  = null
  
     decoder = new bencode.decoder()
@@ -57,7 +57,7 @@ bencoded strings on the network:
 
 Or "all in one"
 
-    var benc = require("bencode"),
+    var benc = require("bncode"),
         buf  = getBuffer(),
         dec  = benc.decode(buf)
  
