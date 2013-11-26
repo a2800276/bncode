@@ -12,6 +12,5 @@
     "test": "node test/test.js"
   },
   "dependencies": {
-    "bops": "~0.1.0"
   }
 }
