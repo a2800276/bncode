@@ -63,9 +63,7 @@
  *
  */
 
-
-
-var Transform   = require('readable-stream').Transform;
+var Transform   = require('stream').Transform;
 var inherits = require('util').inherits;
 var bops = require('bops')
 
@@ -110,7 +108,7 @@ function log (m) {console.log(m); process.stdout.flush()}
 var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
   var depth   = 0
   var state   = STATE_INITIAL
-  
+
   var cb      = cb
   var cb_list = cb_list
   var cb_dict = cb_dict
@@ -216,7 +214,7 @@ var BdecodeSMachine = function (cb, cb_list, cb_dict, cb_end) {
           if (buffer[pos] == DASH) {
             neg = true  // handle neg and zero within value.
             break
-          } // else fall through 
+          } // else fall through
         case STATE_INTEGER:
           if (integer(buffer[pos])) {
             _int *= 10
