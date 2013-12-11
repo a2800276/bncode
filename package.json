@@ -12,7 +12,6 @@
     "test": "node test/test.js"
   },
   "dependencies": {
-    "readable-stream": "~1.0.2",
     "bops": "~0.1.0"
   }
 }
