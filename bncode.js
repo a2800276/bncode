@@ -10,7 +10,7 @@
  *
  * Encoding is as follows:
  *
- *    var benc  = require("bencode"),
+ *    var benc  = require("bncode"),
  *        exmp = {}
  *
  *    exmp.bla = "blup"
@@ -32,10 +32,10 @@
  * Decoding will work in progressively, e.g. if you're receiving partial
  * bencoded strings on the network:
  *
- *    var benc = require("bencode"),
+ *    var benc = require("bncode"),
  *        buf  = null
  *
- *    decoder = new bencode.decoder()
+ *    decoder = new bncode.decoder()
  *    while (buf = receiveData()) {
  *      decoder.decode(buf)
  *    }
@@ -45,7 +45,7 @@
  *
  * Or "all in one"
  *
- *    var benc = require("bencode"),
+ *    var benc = require("bncode"),
  *        buf  = getBuffer(),
  *        dec  = benc.decode(buf)
  *

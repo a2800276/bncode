@@ -1,6 +1,6 @@
 {
   "name": "bncode",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "bittorrent bencoding and decoding.",
   "author": "Tim Becker <tim.becker@kuriositaet.de>",
   "contributors": [
@@ -9,10 +9,10 @@
    "Patrick Williams <patrick@bittorrent.com>",
    "Clark Fischer <clark.fischer@gmail.com>"
   ],
-  "main": "./bencode.js",
+  "main": "./bncode.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/a2800276/bencode.js.git"
+    "url": "git://github.com/a2800276/bncode.git"
   },
   "scripts": {
     "test": "node test/test.js"

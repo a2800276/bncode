@@ -1,4 +1,4 @@
-[![build status](https://secure.travis-ci.org/a2800276/bencode.js.png)](http://travis-ci.org/a2800276/bencode.js)
+[![build status](https://secure.travis-ci.org/a2800276/bncode.js)](http://travis-ci.org/a2800276/bncode)
 # bencoding for JS (node.js)
 
 
@@ -8,7 +8,7 @@ Bencoding is specified [here](http://www.bittorrent.org/beps/bep_0003.html).
 
 ## Get & Install
 
-github repository is [here](https://github.com/a2800276/bencode.js)
+github repository is [here](https://github.com/a2800276/bncode)
 
 Installable via npm (npm package name is **bncode**, note spelling!):
 
@@ -47,7 +47,7 @@ bencoded strings on the network:
     var benc = require("bncode"),
         buf  = null
  
-    decoder = new bencode.decoder()
+    decoder = new benc.decoder()
     while (buf = receiveData()) {
       decoder.decode(buf)
     }
@@ -104,7 +104,7 @@ encode/decode) if you encode fancy data-types.
 
 ## Author
 
-bencode.js was written by Tim Becker (tim.becker@kuriositaet.de) I can be reached via 
+bncode was written by Tim Becker (tim.becker@kuriositaet.de) I can be reached via 
 email or (preferably) submit a bug to the github repository.
 
 

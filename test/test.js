@@ -1,5 +1,5 @@
 
-var benc = require('../bencode.js');
+var benc = require('../bncode.js');
 
 var  tests = 0
     ,failures = 0
