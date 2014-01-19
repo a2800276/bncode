@@ -110,11 +110,11 @@ email or (preferably) submit a bug to the github repository.
 
 ## Thanks
 
-Roly Fentanes (fent) for bug reports.
-Clark Fischer (clarkf)
-The fine folks at Travis.
-Patrick Williams
-Feross Aboukhadijeh
+* Roly Fentanes (fent) for bug reports.
+* Clark Fischer (clarkf)
+* The fine folks at Travis.
+* Patrick Williams
+* Feross Aboukhadijeh
 
 
 ## License
