@@ -76,7 +76,7 @@ function docs () {
   var bencBuffer = benc.encode(exmp)
   
   return assert("src comment doc example", 
-                "d3:bla4:blup3:foo3:bar3:onei1e4:woahd3:arrli1ei2ei3eee3:str16:Buffers work tooe",
+                "d3:bla4:blup3:foo3:bar3:onei1e3:str16:Buffers work too4:woahd3:arrli1ei2ei3eeee",
                 bencBuffer.toString())
 }
 
@@ -121,6 +121,14 @@ function dict_e() {
   assert('dict1', 'de', benc.encode({}).toString() )
   assert('dict2', 'd3:bla4:blube', benc.encode({'bla':'blub'}).toString() )
   assert('dict3', 'd3:bla4:blub4:blubi4ee', benc.encode({'bla':'blub', 'blub':4}).toString() )
+  
+  // keys are typically enumerated in the order of creation (in JS), but should be enumerated
+  // alphabetically in bencoding ...
+  var dict = {}
+      dict["c"] = 1
+      dict["b"] = "1"
+      dict["a"] = 1
+  assert('dict4', 'd1:ai1e1:b1:11:ci1ee',benc.encode(dict).toString());
 
   //log("assert('dict1', '"+benc.encode({}).toString()+"', benc.encode({}).toString() )")
   //log("assert('dict2', '"+benc.encode({"bla":"blub"}).toString()+"', benc.encode({'bla':'blub'}).toString() )")

@@ -378,9 +378,10 @@ var Bencode = function(obj) {
 
   function encodeDict(obj) {
     var func = function (obj, pos) {
-      for (var p in obj) {
-        var key = Bencode(p),
-            val = Bencode(obj[p])
+      var keys = Object.keys(obj).sort()
+      for (var i in keys) {
+        var key = Bencode(keys[i]),
+            val = Bencode(obj[keys[i]])
         ensure(key.length + val.length, pos)
         key.copy(buffer, pos, 0)
         pos += key.length
