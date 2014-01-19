@@ -1,4 +1,4 @@
-[![build status](https://secure.travis-ci.org/a2800276/bncode.js)](http://travis-ci.org/a2800276/bncode)
+[![build status](https://secure.travis-ci.org/a2800276/bncode.png)](http://travis-ci.org/a2800276/bncode)
 # bencoding for JS (node.js)
 
 
