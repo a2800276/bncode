@@ -243,7 +243,7 @@ function BdecodeSMachine (cb, cb_list, cb_dict, cb_end) {
 /*
  * The exported decode functionality.
  */
-function Bdecode () {
+function Bdecode () {
   // markers
   var DICTIONARY_START = {}
   var LIST_START       = {}
