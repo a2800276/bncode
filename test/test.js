@@ -5,7 +5,8 @@ var  tests = 0
     ,failures = 0
 
 function report () {
-  log ("#test:"+tests+" failures: "+failures+"("+(failures/tests)*100+"%)")
+  var perc_failed = (failures/tests)*100
+  log ("#tests: "+tests+" failures: "+failures+" ("+perc_failed.toFixed(2)+"%)")
 }
 function log(msg) {
   console.log(msg)
@@ -54,6 +55,18 @@ function assert_buf(msg, should, is) {
     }
     assert(msg, should, is)
   }
+}
+
+function assert_no_throw(msg, f) {
+  ++tests
+  try {
+    f()
+  } catch (e) {
+    log (msg + " failed, caught: "+e)
+    ++failures
+    return false
+  }
+  return true
 }
 
 /**********************************************************************
@@ -323,6 +336,20 @@ function list_0() {
   assert_obj("List with 0", [0], decoded);
 }
 
+// https://github.com/a2800276/bncode/issues/16
+function issue_16() {
+  Array.prototype.monkey_see_monkeypath = "bananas" 
+  var arr = [1,2,3,4]
+  var obj = {
+    one : 1,
+    two : 2,
+    tri : 3
+  }
+  assert_no_throw("Issue 16", function() {
+    var encoded = benc.encode(obj)
+  })
+}
+
 docs()
 str_e()
 num_e()
@@ -340,6 +367,7 @@ list_0()
 //console.log("here")
 file_readStream("test/chipcheezum.torrent");
 file_readStream("test/videos.torrent");
+issue_16()
 
 report()
 if (failures > 0) {
