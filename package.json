@@ -1,6 +1,6 @@
 {
   "name": "bncode",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "description": "BitTorrent bencoding and decoding library for Node.js",
   "author": "Tim Becker <tim.becker@kuriositaet.de>",
   "contributors": [
