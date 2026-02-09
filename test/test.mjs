@@ -1,19 +1,19 @@
+import * as benc from '../bncode.js'
+import { readFileSync, readFile, createReadStream } from 'node:fs'
 
-var benc = require('../bncode.js');
+let tests = 0
+let failures = 0
 
-var  tests = 0
-    ,failures = 0
-
-function report () {
-  var perc_failed = (failures/tests)*100
+export function report () {
+  const perc_failed = (failures/tests)*100
   log ("#tests: "+tests+" failures: "+failures+" ("+perc_failed.toFixed(2)+"%)")
 }
-function log(msg) {
+export function log(msg) {
   console.log(msg)
 //  process.stdout.flush()
 }
 
-function assert(msg, should, is) {
+export function assert(msg, should, is) {
   ++tests
   if (! (should === is) ) {
     log(msg+" failed: should be: >"+should+"< is >"+ is + "<");
@@ -23,11 +23,11 @@ function assert(msg, should, is) {
   return true
 }
 
-function assert_obj(msg, should, is) {
+export function assert_obj(msg, should, is) {
   ++tests
-  var s = JSON.stringify,
-      should = should.toString(),
-      is     = is.toString()
+  const s = JSON.stringify
+  should = should.toString()
+  is = is.toString()
   if (! (should === is) ) {
     log(msg+" failed: should be: >"+should+"< is >"+ is + "<");
 //    log (s(should))
@@ -38,7 +38,7 @@ function assert_obj(msg, should, is) {
   return true
 }
 
-function assert_buf(msg, should, is) {
+export function assert_buf(msg, should, is) {
   if (typeof(should) === "string" && is instanceof Buffer) {
     assert(msg, should, is.toString())
   } else {
@@ -57,7 +57,7 @@ function assert_buf(msg, should, is) {
   }
 }
 
-function assert_no_throw(msg, f) {
+export function assert_no_throw(msg, f) {
   ++tests
   try {
     f()
@@ -73,8 +73,8 @@ function assert_no_throw(msg, f) {
 *  Encoding tests.
 ***********************************************************************/
 
-function docs () {
-  var exmp = {}
+export function docs () {
+  let exmp = {}
 
   exmp.bla = "blup"
   exmp.foo = "bar"
@@ -84,17 +84,17 @@ function docs () {
   exmp.woah.arr.push(1)
   exmp.woah.arr.push(2)
   exmp.woah.arr.push(3)
-  exmp.str = new Buffer("Buffers work too")
+  exmp.str = Buffer.from("Buffers work too")
 
-  var bencBuffer = benc.encode(exmp)
+  const bencBuffer = benc.encode(exmp)
   
   return assert("src comment doc example", 
                 "d3:bla4:blup3:foo3:bar3:onei1e3:str16:Buffers work too4:woahd3:arrli1ei2ei3eeee",
                 bencBuffer.toString())
 }
 
-function str_e () {
-  var ret = true
+export function str_e () {
+  let ret = true
   ret &= assert('str1', '4:1234', benc.encode('1234').toString() )
   ret &= assert('str2', '8:unicöde', benc.encode('unicöde').toString() )
   ret &= assert('str3', '0:', benc.encode('').toString() ) // empty strings? not sure here
@@ -109,8 +109,8 @@ function str_e () {
   return ret 
 }
 
-function num_e() {
-  var ret=true
+export function num_e() {
+  const ret=true
   assert('num1', 'i1234e', benc.encode(1234).toString() )
   assert('num2', 'i-1234e', benc.encode(-1234).toString() )
   assert('num3', 'i0e', benc.encode(0).toString() )
@@ -120,7 +120,7 @@ function num_e() {
 //  log("assert('num3', '"+benc.encode(0).toString()+"', benc.encode(-1234) )")
 }
 
-function list_e() {
+export function list_e() {
   assert('list1', 'le', benc.encode([]).toString() )
   assert('list2', 'li1ee', benc.encode([1]).toString() )
   assert('list3', 'li1ei2ei3e4:foure', benc.encode([1,2,3,'four']).toString() )
@@ -130,14 +130,14 @@ function list_e() {
   //log("assert('list3', '"+benc.encode([1,2,3,"four"]).toString()+"', benc.encode([1,2,3,'four']).toString() )")
  
 }
-function dict_e() {
+export function dict_e() {
   assert('dict1', 'de', benc.encode({}).toString() )
   assert('dict2', 'd3:bla4:blube', benc.encode({'bla':'blub'}).toString() )
   assert('dict3', 'd3:bla4:blub4:blubi4ee', benc.encode({'bla':'blub', 'blub':4}).toString() )
   
   // keys are typically enumerated in the order of creation (in JS), but should be enumerated
   // alphabetically in bencoding ...
-  var dict = {}
+  const dict = {}
       dict["c"] = 1
       dict["b"] = "1"
       dict["a"] = 1
@@ -154,9 +154,9 @@ function dict_e() {
 *  Decoding tests.
 ***********************************************************************/
 
-function docs_d () {
-  var exmp  = {},
-      exmp2 = benc.decode(new Buffer("d3:bla4:blup3:foo3:bar3:onei1e4:woahd3:arrli1ei2ei3eee3:str16:Buffers work tooe"))
+export function docs_d () {
+  let exmp  = {},
+      exmp2 = benc.decode(Buffer.from("d3:bla4:blup3:foo3:bar3:onei1e4:woahd3:arrli1ei2ei3eee3:str16:Buffers work tooe"))
 
   exmp.bla = "blup"
   exmp.foo = "bar"
@@ -171,7 +171,7 @@ function docs_d () {
   
   for (var p in exmp) {
     if ( "woah" === p ) {
-      var arr  = exmp.woah.arr,
+      const arr  = exmp.woah.arr,
           arr2 = exmp2.woah.arr
 
       assert("nested arr len", arr.length, arr2.length)
@@ -186,11 +186,11 @@ function docs_d () {
 
 }
 
-function str_d () {
-  var ret = true
-  ret &= assert('str_d1', '1234',    benc.decode(new Buffer('4:1234')).toString() )
-  ret &= assert('str_d2', 'unicöde', benc.decode(new Buffer('8:unicöde')).toString() )
-  ret &= assert('str_d3', '',        benc.decode(new Buffer('0:')).toString() )
+export function str_d () {
+  let ret = true
+  ret &= assert('str_d1', '1234',    benc.decode(Buffer.from('4:1234')).toString() )
+  ret &= assert('str_d2', 'unicöde', benc.decode(Buffer.from('8:unicöde')).toString() )
+  ret &= assert('str_d3', '',        benc.decode(Buffer.from('0:')).toString() )
 
   ret &= assert('str_d4', '1234',    benc.decode('4:1234').toString() )
   ret &= assert('str_d5', 'unicöde', benc.decode('8:unicöde').toString() )
@@ -200,20 +200,20 @@ function str_d () {
   return ret 
 }
 
-function num_d() {
-  var ret=true
-  assert('num_d1',  1234,  benc.decode(new Buffer('i1234e')) )
-  assert('num_d2', -1234,  benc.decode(new Buffer('i-1234e')) )
-  assert('num_d3',     0,  benc.decode(new Buffer('i0e')) )
+export function num_d() {
+  const ret=true
+  assert('num_d1',  1234,  benc.decode(Buffer.from('i1234e')) )
+  assert('num_d2', -1234,  benc.decode(Buffer.from('i-1234e')) )
+  assert('num_d3',     0,  benc.decode(Buffer.from('i0e')) )
 
   assert('num_d4',  1234,  benc.decode('i1234e') )
   assert('num_d5', -1234,  benc.decode('i-1234e') )
   assert('num_d6',     0,  benc.decode('i0e') )
 
 
-  var caught = false
+  let caught = false
   try {
-    benc.decode(new Buffer('i1-1e')) 
+    benc.decode(Buffer.from('i1-1e')) 
   } catch (e) {
     assert("illegal num", 'not part of int at:2', e.message)
     caught = true
@@ -222,34 +222,34 @@ function num_d() {
     
 }
 
-function list_d() {
-  assert_obj('list_d1', [], benc.decode(new Buffer("le")) )
-  assert_obj('list_d2', [1], benc.decode(new Buffer('li1ee')) )
-  assert_obj('list_d3', [1,2,3,new Buffer('four')], benc.decode(new Buffer("li1ei2ei3e4:foure")) )
+export function list_d() {
+  assert_obj('list_d1', [], benc.decode(Buffer.from("le")) )
+  assert_obj('list_d2', [1], benc.decode(Buffer.from('li1ee')) )
+  assert_obj('list_d3', [1,2,3,Buffer.from('four')], benc.decode(Buffer.from("li1ei2ei3e4:foure")) )
   
  
   assert_obj('list_d4', [], benc.decode("le") )
   assert_obj('list_d5', [1], benc.decode('li1ee') )
-  assert_obj('list_d6', [1,2,3,new Buffer('four')], benc.decode("li1ei2ei3e4:foure") )
+  assert_obj('list_d6', [1,2,3,Buffer.from('four')], benc.decode("li1ei2ei3e4:foure") )
 
 }
-function dict_d() {
-  assert_obj('dict_d1', {},             benc.decode(new Buffer("de")) )
-  assert_obj('dict_d2', {"bla":new Buffer('blub')}, 
-                                        benc.decode(new Buffer("d3:bla4:blube")) )
-  assert_obj('dict_d3', {"bla": new Buffer('blub'), "blub":4}, 
-                                        benc.decode(new Buffer("d3:bla4:blub4:blubi4ee")) )
+export function dict_d() {
+  assert_obj('dict_d1', {},             benc.decode(Buffer.from("de")) )
+  assert_obj('dict_d2', {"bla":Buffer.from('blub')}, 
+                                        benc.decode(Buffer.from("d3:bla4:blube")) )
+  assert_obj('dict_d3', {"bla": Buffer.from('blub'), "blub":4}, 
+                                        benc.decode(Buffer.from("d3:bla4:blub4:blubi4ee")) )
 
 
   assert_obj('dict_d4', {},             benc.decode("de") )
-  assert_obj('dict_d5', {"bla":new Buffer('blub')}, 
+  assert_obj('dict_d5', {"bla":Buffer.from('blub')}, 
                                         benc.decode("d3:bla4:blube") )
-  assert_obj('dict_d6', {"bla": new Buffer('blub'), "blub":4}, 
+  assert_obj('dict_d6', {"bla": Buffer.from('blub'), "blub":4}, 
                                         benc.decode("d3:bla4:blub4:blubi4ee") )
  
 }
-function assert_err(msg, err_msg, func) {
-  var caught = false
+export function assert_err(msg, err_msg, func) {
+  let caught = false
   try {
     func()
   } catch (e) {
@@ -259,7 +259,7 @@ function assert_err(msg, err_msg, func) {
   assert(msg + " : no exception!", true, caught)
 }
 
-function errors () {
+export function errors () {
   assert_err("err1", 'not in consistent state. More bytes coming?', function() {
     benc.decode("d8:aaaaaaaa6:bbbbbb")
   })
@@ -274,31 +274,29 @@ function errors () {
   })
 }
 
-function file () {  
-  var de = new benc.decoder()
-  var fs = require("fs")
+export function file () {  
+  let de = new benc.decoder()
   
-  fs.readFile("test/bloeh.torrent", function (err, data) {
+  readFile("test/bloeh.torrent", function (err, data) {
     if (err) throw err;
     de.decode(data)
-    var result = de.result()[0]
+    const result = de.result()[0]
     assert_buf("created by", "Transmission/2.33 (12565)" , result["created by"])
     assert("creation date", 1312820612 , result["creation date"])
     assert_buf("encoding", "UTF-8" , result["encoding"])
     assert("info.files0.length", 17, result.info.files[0].length)
-    assert_buf("info.files0.path0", new Buffer("blöh.test", "UTF-8"), result.info.files[0].path[0])
+    assert_buf("info.files0.path0", Buffer.from("blöh.test", "UTF-8"), result.info.files[0].path[0])
     assert("info.files.length", 1, result.info.files.length)
     assert("info.piece length", 32768, result.info["piece length"])
-    assert_buf("info.pieces", new Buffer( [0xa6, 0x1a, 0x21, 0x38, 0xa2, 0x37, 0xc8, 0xd8, 0x99, 0x71, 0x0e, 0xbe, 0x91, 0x7f, 0xcf, 0xa3, 0x79, 0x12, 0x1b, 0x21] ), result.info.pieces)
+    assert_buf("info.pieces", Buffer.from( [0xa6, 0x1a, 0x21, 0x38, 0xa2, 0x37, 0xc8, 0xd8, 0x99, 0x71, 0x0e, 0xbe, 0x91, 0x7f, 0xcf, 0xa3, 0x79, 0x12, 0x1b, 0x21] ), result.info.pieces)
   })
 }
 
-function file_readStream (filename) {
-  var fs = require('fs')
+export function file_readStream (filename) {
 
-  var rs = fs.createReadStream(filename);
+  const rs = createReadStream(filename);
 
-  var stream = new benc.Stream();
+  const stream = new benc.Stream();
   rs.pipe(stream);
 
   stream.on('error', function(err) {
@@ -309,45 +307,79 @@ function file_readStream (filename) {
   })
 }
 
-function file_bug() {
-  var fs = require('fs')
-  var de = new benc.decoder()
+export function file_bug() {
+  let de = new benc.decoder()
 
-  var file = 'test/test.torrent'
+  const file = 'test/test.torrent'
   
   function file_bug2(data) {
-    var data2 = fs.readFileSync(file, 'binary')
+    const data2 = readFileSync(file, 'binary')
 
     benc.decode(data2, "binary")
     de.decode(data2, "binary")
     
   }
 
-  fs.readFile(file, function(err, data) {
+  readFile(file, function(err, data) {
     de.decode(data)
     
     file_bug2(data) 
   })
 }
 
-function list_0() {
-  var data = 'li0ee';
-  var decoded = benc.decode(data);
+export function list_0() {
+  const data = 'li0ee';
+  const decoded = benc.decode(data);
   assert_obj("List with 0", [0], decoded);
 }
 
 // https://github.com/a2800276/bncode/issues/16
-function issue_16() {
+export function issue_16() {
   Array.prototype.monkey_see_monkeypath = "bananas" 
-  var arr = [1,2,3,4]
-  var obj = {
+  const arr = [1,2,3,4]
+  let obj = {
     one : 1,
     two : 2,
     tri : 3
   }
   assert_no_throw("Issue 16", function() {
-    var encoded = benc.encode(obj)
+    const encoded = benc.encode(obj)
   })
+}
+
+// https://github.com/a2800276/bncode/issues/19
+export function issue_19() {
+  // Dictionary keys must be sorted by raw byte values, not UTF-16
+  // Create two strings where UTF-16 order differs from UTF-8 byte order
+  const A = String.fromCodePoint(0xFF61) // UTF-8: EF BD A1
+  const B = String.fromCodePoint(0x10002) // UTF-8: F0 90 80 82
+  
+  // Correct order by bytes: A comes before B
+  // (0xEF < 0xF0 in first byte)
+  const bufA = Buffer.from(A)
+  const bufB = Buffer.from(B)
+  const byteOrderCorrect = Buffer.compare(bufA, bufB) < 0 // true: A < B
+  
+  // JS default sort would give wrong order: [B, A]
+  const jsSort = [A, B].sort()
+  const jsSortWrong = jsSort[0] === B // true: JS sorts B before A
+  
+  // Verify the issue exists and our understanding is correct
+  assert("Issue 19: byte order differs from UTF-16", true, byteOrderCorrect)
+  assert("Issue 19: JS sort gives wrong order", true, jsSortWrong)
+  
+  // Now test that bencode encodes in correct byte order
+  const testObj = {}
+  testObj[B] = 'value2'
+  testObj[A] = 'value1'
+  
+  const encoded = benc.encode(testObj)
+  const decoded = benc.decode(encoded)
+  const decodedKeys = Object.keys(decoded)
+  
+  // First key in bencode should be A (smaller byte value)
+  assert_buf("Issue 19: first key should be A", bufA, Buffer.from(decodedKeys[0]))
+  assert_buf("Issue 19: second key should be B", bufB, Buffer.from(decodedKeys[1]))
 }
 
 docs()
@@ -368,6 +400,7 @@ list_0()
 file_readStream("test/chipcheezum.torrent");
 file_readStream("test/videos.torrent");
 issue_16()
+issue_19()
 
 report()
 if (failures > 0) {

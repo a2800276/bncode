@@ -63,27 +63,22 @@
  *
  */
 
-exports.encode  = Bencode
-exports.decoder = Bdecode
-exports.decode  = decode
-exports.Stream  = Stream
+import { inherits } from 'node:util'
+import { Transform } from 'node:stream'
 
-var inherits = require('util').inherits
-var Transform = require('stream').Transform
+const I     = 'i'.charCodeAt(0)
+const L     = 'l'.charCodeAt(0)
+const E     = 'e'.charCodeAt(0)
+const D     = 'd'.charCodeAt(0)
+const COLON = ':'.charCodeAt(0)
+const DASH  = '-'.charCodeAt(0)
 
-var I     = 'i'.charCodeAt(0)
-var L     = 'l'.charCodeAt(0)
-var E     = 'e'.charCodeAt(0)
-var D     = 'd'.charCodeAt(0)
-var COLON = ':'.charCodeAt(0)
-var DASH  = '-'.charCodeAt(0)
-
-var STATE_INITIAL          = 0
-var STATE_STATE_STRING_LEN = STATE_INITIAL          + 1
-var STATE_STRING           = STATE_STATE_STRING_LEN + 1
-var STATE_COLON            = STATE_STRING           + 1
-var STATE_STATE_INTEGER    = STATE_COLON            + 1
-var STATE_INTEGER          = STATE_STATE_INTEGER    + 1
+const STATE_INITIAL          = 0
+const STATE_STATE_STRING_LEN = STATE_INITIAL          + 1
+const STATE_STRING           = STATE_STATE_STRING_LEN + 1
+const STATE_COLON            = STATE_STRING           + 1
+const STATE_STATE_INTEGER    = STATE_COLON            + 1
+const STATE_INTEGER          = STATE_STATE_INTEGER    + 1
 
 /*
  * This is the internal state machine for taking apart bencoded strings,
@@ -107,24 +102,24 @@ var STATE_INTEGER          = STATE_STATE_INTEGER    + 1
  */
 
 function BdecodeSMachine (cb, cb_list, cb_dict, cb_end) {
-  var depth = 0
-  var state = STATE_INITIAL
+  let depth = 0
+  let state = STATE_INITIAL
 
   this.consistent = function () {
     return state === STATE_INITIAL && depth === 0
   }
 
-  var strLen = 0
-  var str    = ''
-  var _int   = 0
-  var neg    = false
+  let strLen = 0
+  let str    = ''
+  let _int   = 0
+  let neg    = false
 
   this.parse = function (buffer, encoding) {
     if (typeof buffer === 'string') {
-      buffer = new Buffer(buffer, encoding || 'utf8')
+      buffer = Buffer.from(buffer, encoding || 'utf8')
     }
 
-    for (var pos = 0; pos !== buffer.length; ++pos) {
+    for (let pos = 0; pos !== buffer.length; ++pos) {
       switch (state) {
         case STATE_INITIAL:
           switch (buffer[pos]) {
@@ -173,7 +168,7 @@ function BdecodeSMachine (cb, cb_list, cb_dict, cb_end) {
             strLen *= 10
             strLen += buffer[pos] - 0x30
           } else {
-            str = new Buffer(strLen)
+            str = Buffer.allocUnsafe(strLen)
             pos -=1
             state = STATE_COLON
           }
@@ -186,7 +181,7 @@ function BdecodeSMachine (cb, cb_list, cb_dict, cb_end) {
           // in case this is a zero length string, there's
           // no bytes to be collected.
           if (0 === strLen) {
-            cb(new Buffer(0))
+            cb(Buffer.alloc(0))
             state = STATE_INITIAL
           }
           break
@@ -215,7 +210,7 @@ function BdecodeSMachine (cb, cb_list, cb_dict, cb_end) {
             _int *= 10
             _int += buffer[pos] - 0x30
           } else if (buffer[pos] === E) {
-            var ret = neg ? 0 - _int : _int
+            const ret = neg ? 0 - _int : _int
             cb(ret)
             state = STATE_INITIAL
           } else {
@@ -245,12 +240,12 @@ function BdecodeSMachine (cb, cb_list, cb_dict, cb_end) {
  */
 function Bdecode () {
   // markers
-  var DICTIONARY_START = {}
-  var LIST_START       = {}
+  const DICTIONARY_START = {}
+  const LIST_START       = {}
 
-  var Context  = function () {
-    var self  = this
-    var stack = []
+  const Context  = function () {
+    const self  = this
+    const stack = []
 
     this.cb = function (o) {
       stack.push(o)
@@ -268,22 +263,22 @@ function Bdecode () {
       // found, create arr or hash, stick unwound stack on, push arr or hash
       // back onto stack
 
-      var obj       = null
-      var tmp_stack = []
+      let obj       = null
+      const tmp_stack = []
 
       while ((obj = stack.pop()) !== undefined) {
         if (LIST_START === obj) {
-          var obj2 = null
-          var list = []
+          let obj2 = null
+          const list = []
           while((obj2 = tmp_stack.pop()) !== undefined) {
             list.push(obj2)
           }
           self.cb(list)
           break
         } else if (DICTIONARY_START === obj) {
-          var key = null
-          var val = null
-          var dic = {}
+          let key = null
+          let val = null
+          const dic = {}
           while ((key = tmp_stack.pop()) !== undefined && (val = tmp_stack.pop()) !== undefined) {
             dic[key.toString()] = val
           }
@@ -307,9 +302,9 @@ function Bdecode () {
     }
   }
 
-  var self     = this
-  var ctx      = new Context()
-  var smachine = new BdecodeSMachine(ctx.cb, ctx.cb_list, ctx.cb_dict, ctx.cb_end)
+  const self     = this
+  const ctx      = new Context()
+  const smachine = new BdecodeSMachine(ctx.cb, ctx.cb_list, ctx.cb_dict, ctx.cb_end)
 
   this.result = function () {
     if (!smachine.consistent()) {
@@ -324,9 +319,9 @@ function Bdecode () {
 }
 
 function Bencode (obj) {
-  var self = this
-  var to_encode = obj
-  var buffer = null
+  const self = this
+  const to_encode = obj
+  let buffer = null
 
   switch (typeof obj) {
     case 'string':
@@ -345,9 +340,9 @@ function Bencode (obj) {
   }
 
   function encodeString (obj) {
-    var blen = Buffer.byteLength(obj)
-    var len  = blen.toString(10)
-    var buf  = new Buffer(len.length + 1 + blen)
+    const blen = Buffer.byteLength(obj)
+    const len  = blen.toString(10)
+    const buf  = Buffer.allocUnsafe(len.length + 1 + blen)
 
     buf.write(len, 0, 'ascii')
     buf.write(':', len.length, 'ascii')
@@ -357,8 +352,8 @@ function Bencode (obj) {
   }
 
   function encodeNumber (num) {
-    var n   = num.toString(10)
-    var buf = new Buffer(n.length + 2)
+    const n   = num.toString(10)
+    const buf = Buffer.allocUnsafe(n.length + 2)
 
     buf.write('i', 0)
     buf.write(n, 1)
@@ -368,10 +363,14 @@ function Bencode (obj) {
   }
 
   function encodeDict (obj) {
-    var func = function (obj, pos) {
-      var keys = Object.keys(obj).sort()
+    const func = function (obj, pos) {
+      // Sort keys by byte order, not UTF-16 order (Issue #19)
+      // BitTorrent spec requires keys sorted as raw bytes
+      const keys = Object.keys(obj).sort(function (a, b) {
+        return Buffer.compare(Buffer.from(a), Buffer.from(b))
+      })
       keys.forEach(function (key) {
-        var val = new Bencode(obj[key])
+        const val = new Bencode(obj[key])
         key = new Bencode(key)
 
         ensure(key.length + val.length, pos)
@@ -386,9 +385,9 @@ function Bencode (obj) {
   }
 
   function encodeList (obj) {
-    var func = function(obj, pos) {
+    const func = function(obj, pos) {
       obj.forEach(function (o) {
-        var elem = new Bencode(o)
+        const elem = new Bencode(o)
 
         ensure(elem.length, pos)
         elem.copy(buffer, pos, 0)
@@ -400,8 +399,8 @@ function Bencode (obj) {
   }
 
   function encodeBuffer (obj) {
-    var len = obj.length.toString(10)
-    var buf = new Buffer(len.length + 1 + obj.length)
+    const len = obj.length.toString(10)
+    const buf = Buffer.allocUnsafe(len.length + 1 + obj.length)
 
     buf.write(len, 0, 'ascii')
     buf.write(':', len.length, 'ascii')
@@ -411,7 +410,7 @@ function Bencode (obj) {
   }
 
   function assemble (obj, prefix, func) {
-    var pos = 0
+    let pos = 0
 
     ensure(1024, 0)
     buffer.write(prefix, pos++)
@@ -425,12 +424,12 @@ function Bencode (obj) {
 
   function ensure (num, pos) {
     if (!buffer) {
-      buffer = new Buffer(num)
+      buffer = Buffer.allocUnsafe(num)
     } else {
       if (buffer.length > num + pos + 1) {
         return
       } else {
-        var buf2 = new Buffer(buffer.length + num)
+        const buf2 = Buffer.allocUnsafe(buffer.length + num)
         buffer.copy(buf2, 0, 0)
         buffer = buf2
       }
@@ -439,7 +438,7 @@ function Bencode (obj) {
 }
 
 function decode (buffer, encoding) {
-  var decoder = new Bdecode()
+  const decoder = new Bdecode()
 
   decoder.decode(buffer, encoding)
   return decoder.result()[0]
@@ -467,3 +466,10 @@ Stream.prototype._flush = function (callback) {
   this.push(this._decoder.result()[0])
   callback(null)
 }
+
+// ESM exports
+export { Bencode as encode, Bdecode as decoder, decode, Stream }
+
+// Default export for convenience
+export default { encode: Bencode, decoder: Bdecode, decode, Stream }
+

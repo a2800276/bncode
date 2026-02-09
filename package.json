@@ -1,22 +1,54 @@
 {
   "name": "bncode",
   "version": "0.5.3",
-  "description": "bittorrent bencoding and decoding.",
+  "description": "BitTorrent bencoding and decoding library for Node.js",
   "author": "Tim Becker <tim.becker@kuriositaet.de>",
   "contributors": [
-   "Feross Aboukhadijeh <feross@feross.org>",
-   "Roly Fentanes <roly426@gmail.com>",
-   "Patrick Williams <patrick@bittorrent.com>",
-   "Clark Fischer <clark.fischer@gmail.com>"
+    "Feross Aboukhadijeh <feross@feross.org>",
+    "Roly Fentanes <roly426@gmail.com>",
+    "Patrick Williams <patrick@bittorrent.com>",
+    "Clark Fischer <clark.fischer@gmail.com>"
   ],
+  "license": "MIT",
+  "type": "module",
   "main": "./bncode.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./bncode.js",
+      "types": "./index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/a2800276/bncode.git"
   },
-  "scripts": {
-    "test": "node test/test.js"
+  "bugs": {
+    "url": "https://github.com/a2800276/bncode/issues"
   },
-  "dependencies": {
-  }
+  "homepage": "https://github.com/a2800276/bncode#readme",
+  "keywords": [
+    "bencode",
+    "bencoding",
+    "bittorrent",
+    "torrent",
+    "encode",
+    "decode",
+    "parser",
+    "esm",
+    "deno",
+    "bun"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "test": "node test/test.mjs",
+    "test:deno": "deno test --allow-read test/test-deno.js",
+    "test:bun": "bun test/test.mjs",
+    "test:all": "npm test && npm run test:deno && npm run test:bun"
+  },
+  "dependencies": {},
+  "devDependencies": {}
 }

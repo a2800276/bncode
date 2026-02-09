@@ -1,89 +1,95 @@
 [![build status](https://secure.travis-ci.org/a2800276/bncode.png)](http://travis-ci.org/a2800276/bncode)
-# bencoding for JS (node.js)
+[![JSR](https://jsr.io/badges/@a2800276/bncode)](https://jsr.io/@a2800276/bncode)
+[![JSR Score](https://jsr.io/badges/@a2800276/bncode/score)](https://jsr.io/@a2800276/bncode)
 
+# bncode
 
-This is a small library to encode and decode bencoded (bittorrent) stuff. 
-Bencoding is specified [here](http://www.bittorrent.org/beps/bep_0003.html).
+A BitTorrent bencoding and decoding library for Node.js, Deno, and Bun.
 
+Bencoding is the encoding format used by BitTorrent, specified in [BEP
+3](http://www.bittorrent.org/beps/bep_0003.html).
 
-## Get & Install
+## Features
 
-github repository is [here](https://github.com/a2800276/bncode)
+-  Works in Node.js, Deno, and Bun
+-  TypeScript definitions included
+-  Zero dependencies
+-  Single file implementation
 
-Installable via npm (npm package name is **bncode**, note spelling!):
+### Installation
 
-    npm install bncode
+```bash
+npm install bncode
+```
 
+### ## Usage
 
-## Encoding
+```javascript
+import { encode, decode } from 'bncode'
 
-Encoding works as follows:
+const exmp = {
+  bla: 'blup',
+  foo: 'bar',
+  one: 1,
+  woah: {
+    arr: [1, 2, 3]
+  },
+  str: Buffer.from('Buffers work too')
+}
 
-    var benc  = require("bncode"),
-        exmp = {}
- 
-    exmp.bla = "blup"
-    exmp.foo = "bar"
-    exmp.one = 1
-    exmp.woah = {}
-    exmp.woah.arr = []
-    exmp.woah.arr.push(1)
-    exmp.woah.arr.push(2)
-    exmp.woah.arr.push(3)
-    exmp.str = new Buffer("Buffers work too")
- 
-    var bencBuffer = benc.encode(exmp)
- 
-    // d3:bla4:blup3:foo3:bar3:onei1e4:woahd3:arr \
-    // li1ei2ei3eee3:str16:Buffers work tooe
+const bencBuffer = encode(exmp)
 
-
+// d3:bla4:blup3:foo3:bar3:onei1e4:woahd3:arr \
+// li1ei2ei3eee3:str16:Buffers work tooe
+```
 
 ## Decoding
 
-Decoding will work progressively, e.g. if you're receiving partial
+Decoding works progressively, e.g., if you're receiving partial
 bencoded strings on the network:
 
-    var benc = require("bncode"),
-        buf  = null
- 
-    decoder = new benc.decoder()
-    while (buf = receiveData()) {
-      decoder.decode(buf)
-    }
-    
-    log(decoder.result())
+```javascript
+const bncode = require('bncode')
+let buf = null
 
+const decoder = new bncode.decoder()
+while (buf = receiveData()) {
+  decoder.decode(buf)
+}
 
-Or "all in one"
+console.log(decoder.result())
+```
 
-    var benc = require("bncode"),
-        buf  = getBuffer(),
-        dec  = benc.decode(buf)
- 
-    log(dec.bla)
+Or "all in one":
 
+```javascript
+const bncode = require('bncode')
+const buf = getBuffer()
+const dec = bncode.decode(buf)
+
+console.log(dec.bla)
+```
+
+### String Handling
 
 There are some subtleties concerning bencoded strings. These are
 decoded as Buffer objects because they are just strings of raw bytes
-and as such would wreak havoc with multi byte strings in javascript.
+and as such would wreak havoc with multi-byte strings in JavaScript.
 
 The exception to this is strings appearing as keys in bencoded
-dicts. These are decoded as Javascript Strings, as they should always
-be strings of (ascii) characters and if they weren't decoded as JS
-Strings, dict's couldn't be mapped to Javascript objects.
+dictionaries. These are decoded as JavaScript Strings, as they should always
+be strings of (ASCII) characters. If they weren't decoded as JS
+Strings, dictionaries couldn't be mapped to JavaScript objects.
 
+## Mapping bencoding to JavaScript
 
-## Mapping bencoding to Javascript
-
-    
      +----------------------------------------------------+
      |                |                                   |
-     |  Bencoded      |    Javascript                     |
+     |  Bencoded      |    JavaScript                     |
      |====================================================|
-     |  Strings       |    node Buffers, unless they are  |
-     |                |    Dictionary keys, in which case |
-     |                |    they become Javascript Strings |
+     |  Strings       |    Node Buffers, unless they are  |
+     |                |    dictionary keys, in which case |
+     |                |    they become JavaScript Strings |
      |----------------+-----------------------------------|
      |  Integers      |    Number                         |
      |----------------+-----------------------------------|
@@ -93,29 +99,58 @@ Strings, dict's couldn't be mapped to Javascript objects.
      |                |                                   |
      +----------------------------------------------------+
 
+## Mapping JavaScript to bencoding
 
-## Mapping Javascript to bencoding
-
-The code makes a best effort to encode Javascript to bencoding. If you stick to basic 
+The code makes a best effort to encode JavaScript to bencoding. If you stick to basic 
 types (Arrays, Objects with String keys and basic values, Strings, Buffers and Numbers) 
-you shouldn't encounter suprises. Expect surprises (mainly not being able to round-trip 
-encode/decode) if you encode fancy data-types.
+you shouldn't encounter surprises. Expect surprises (mainly not being able to round-trip 
+encode/decode) if you encode fancy data types.
 
+## Stream API
+
+A transform stream is also available:
+
+```javascript
+const bncode = require('bncode')
+const fs = require('fs')
+
+fs.createReadStream('file.torrent')
+  .pipe(new bncode.Stream())
+  .on('data', (data) => {
+    console.log(data)
+  })
+```
+
+## API
+
+### `bncode.encode(obj)`
+
+Encodes a JavaScript object into a bencoded Buffer.
+
+### `bncode.decode(buffer, [encoding])`
+
+Decodes a bencoded buffer into a JavaScript object.
+
+### `new bncode.decoder()`
+
+Creates a progressive decoder that can handle partial data.
+
+### `new bncode.Stream([options])`
+
+Creates a transform stream for decoding bencoded data.
 
 ## Author
 
-bncode was written by Tim Becker (tim.becker@kuriositaet.de) I can be reached via 
-email or (preferably) submit a bug to the github repository.
-
+bncode was written by Tim Becker (tim.becker@kuriositaet.de). I can be reached via 
+email or (preferably) submit a bug to the GitHub repository.
 
 ## Thanks
 
-* Roly Fentanes (fent) for bug reports.
+* Roly Fentanes (fent) for bug reports
 * Clark Fischer (clarkf)
-* The fine folks at Travis.
+* The fine folks at Travis
 * Patrick Williams
 * Feross Aboukhadijeh
-
 
 ## License
 
