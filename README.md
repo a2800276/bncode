@@ -16,13 +16,13 @@ Bencoding is the encoding format used by BitTorrent, specified in [BEP
 -  Zero dependencies
 -  Single file implementation
 
-### Installation
+## Installation
 
 ```bash
 npm install bncode
 ```
 
-### ## Usage
+## Usage
 
 ```javascript
 import { encode, decode } from 'bncode'
